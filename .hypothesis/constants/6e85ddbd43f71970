@@ -1,0 +1,4 @@
+# file: /Users/dprabhakara/ai_workspace/ra-voc-analyzer/src/voc_agent/analysis/change_detection.py
+# hypothesis_version: 6.151.12
+
+[0.0, 0.05, 2.0, 2.1, 2.3, 100.0, 100, '2025-W31', 'all', 'category', 'degraded', 'direction', 'improved', 'iso_week', 'pct_change', 'post_mean_weekly', 'post_weeks', 'pre_mean_weekly', 'pre_weeks', 'segment', 'significant', 'steady', 'voc_count']

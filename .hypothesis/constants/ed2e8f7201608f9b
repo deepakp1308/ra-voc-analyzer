@@ -1,0 +1,4 @@
+# file: /Users/dprabhakara/ai_workspace/ra-voc-analyzer/src/voc_agent/analysis/segments.py
+# hypothesis_version: 6.151.12
+
+[',', '?', 'all', 'category', 'confidence', 'customer_id', 'customer_tier', 'free', 'iso_week', 'mean', 'mean_confidence', 'nunique', 'paid', 'paid_gte_299', 'paid_lt_299', 'records', 'segment', 'sentiment', 'size', 'snapshots_computed', 'snapshots_stored', 'unique_customers', 'voc_count']

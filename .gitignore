@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Environment
+.env
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Data (keep schema, not data)
+data/*.csv
+!data/.gitkeep
+*.db
+*.db-wal
+*.db-shm
+
+# Reports (generated)
+reports/
+quarantine/
+
+# Testing
+.pytest_cache/
+htmlcov/
+.coverage
+cassettes/
+
+# OS
+.DS_Store
+Thumbs.db
+.hypothesis/
+data/raw_*.json

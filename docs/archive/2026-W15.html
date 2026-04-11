@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>R&A VOC Analyzer — Weekly Insights Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Avenir Next', -apple-system, 'Helvetica Neue', Arial, sans-serif; background: #f0f4f8; color: #1a1f36; }
+        .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 240px; background: #162251; color: white; padding: 24px 16px; overflow-y: auto; z-index: 100; }
+        .sidebar h2 { font-size: 16px; font-weight: 600; margin-bottom: 24px; display: flex; align-items: center; gap: 8px; }
+        .sidebar .star { color: #00b9a9; font-size: 20px; }
+        .sidebar nav a { display: block; color: rgba(255,255,255,0.7); text-decoration: none; padding: 8px 12px; border-radius: 6px; font-size: 13px; margin-bottom: 2px; transition: all 0.2s; }
+        .sidebar nav a:hover, .sidebar nav a.active { background: rgba(255,255,255,0.1); color: white; }
+        .main { margin-left: 240px; padding: 24px 32px; max-width: 1280px; }
+        .header { margin-bottom: 24px; }
+        .header h1 { font-size: 24px; font-weight: 600; margin-bottom: 4px; }
+        .header .subtitle { color: #6b7c93; font-size: 14px; }
+        .header .generated { color: #6b7c93; font-size: 12px; margin-top: 4px; }
+        .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+        .kpi-card { background: white; border-radius: 8px; border: 1px solid #e8edf5; padding: 20px; box-shadow: 0 1px 4px rgba(26,40,96,0.08); }
+        .kpi-card .label { font-size: 12px; color: #6b7c93; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .kpi-card .value { font-size: 28px; font-weight: 600; }
+        .kpi-card .trend { font-size: 12px; margin-top: 4px; }
+        .kpi-card .trend.up { color: #d13438; }
+        .kpi-card .trend.down { color: #1aab68; }
+        .kpi-card .trend.neutral { color: #6b7c93; }
+        .card { background: white; border-radius: 8px; border: 1px solid #e8edf5; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 4px rgba(26,40,96,0.08); }
+        .card h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .card h3 .icon { color: #00b9a9; }
+        .section-title { font-size: 14px; font-weight: 600; color: #6b7c93; text-transform: uppercase; letter-spacing: 1px; margin: 32px 0 16px; }
+        .tldr { background: linear-gradient(135deg, #162251 0%, #1e3a6e 100%); color: white; border-radius: 8px; padding: 24px; margin-bottom: 24px; }
+        .tldr h3 { color: white; margin-bottom: 12px; }
+        .tldr ul { list-style: none; padding: 0; }
+        .tldr li { padding: 6px 0; font-size: 14px; display: flex; align-items: start; gap: 8px; }
+        .tldr li::before { content: '\2726'; color: #00b9a9; flex-shrink: 0; }
+        .segment-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 24px; }
+        .seg-card { background: white; border-radius: 8px; border: 1px solid #e8edf5; padding: 16px; text-align: center; }
+        .seg-card .seg-label { font-size: 12px; color: #6b7c93; margin-bottom: 8px; }
+        .seg-card .seg-value { font-size: 24px; font-weight: 600; }
+        .seg-card .seg-detail { font-size: 11px; color: #6b7c93; margin-top: 4px; }
+        .change-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .change-table th { text-align: left; padding: 10px 12px; border-bottom: 2px solid #e8edf5; color: #6b7c93; font-weight: 600; font-size: 11px; text-transform: uppercase; }
+        .change-table td { padding: 10px 12px; border-bottom: 1px solid #e8edf5; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+        .badge.reduced { background: #e6f9f0; color: #1aab68; }
+        .badge.increased { background: #fde8ea; color: #d13438; }
+        .badge.steady { background: #f0f4f8; color: #6b7c93; }
+        .voc-list { font-size: 13px; }
+        .voc-item { padding: 12px 0; border-bottom: 1px solid #e8edf5; }
+        .voc-item:last-child { border-bottom: none; }
+        .voc-meta { color: #6b7c93; font-size: 11px; margin-bottom: 4px; }
+        .voc-text { line-height: 1.5; }
+        .qa-footer { background: #f8f9fb; border-radius: 8px; padding: 16px; font-size: 12px; color: #6b7c93; margin-top: 32px; }
+        .qa-footer .qa-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 8px; }
+        .qa-footer .qa-item { text-align: center; }
+        .qa-footer .qa-item .qa-val { font-size: 16px; font-weight: 600; color: #1a1f36; }
+        .chart-container { width: 100%; min-height: 300px; }
+        @media (max-width: 1200px) { .kpi-row { grid-template-columns: repeat(2, 1fr); } .segment-grid { grid-template-columns: repeat(3, 1fr); } }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2><span class="star">&#10022;</span> R&A VOC Analyzer</h2>
+        <nav>
+            <a href="#tldr" class="active">TL;DR</a>
+            <a href="#weekly-trend">Weekly Sentiment Trend</a>
+            <a href="#segments">Segment Breakdown</a>
+            <a href="#categories">Category Distribution</a>
+            <a href="#change">Change Since Aug 2025</a>
+            <a href="#dq-deep-dive">90-Day Data Quality Deep Dive</a>
+            <a href="#top-negative">Top 10 Recent Negative VOCs</a>
+            <a href="#qa">Agent QA</a>
+        </nav>
+        <div style="position: absolute; bottom: 16px; left: 16px; right: 16px; font-size: 11px; color: rgba(255,255,255,0.4);">
+            Generated: 2026-04-10 16:59 PT<br>
+            Data: 2025-W09 to 2026-W15
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="header">
+            <h1>&#10022; R&A VOC Analyzer — Weekly Insights</h1>
+            <div class="subtitle">Customer Voice-of-Customer Analysis for Reporting & Analytics</div>
+            <div class="generated">Data range: 2025-W09 to 2026-W15 | 710 total VOCs across 3 channels | Generated April 10, 2026</div>
+        </div>
+
+        <!-- KPI Row -->
+        <div class="kpi-row">
+            <div class="kpi-card">
+                <div class="label">Total VOCs</div>
+                <div class="value">710</div>
+                <div class="trend neutral">47 weeks analyzed</div>
+            </div>
+            <div class="kpi-card">
+                <div class="label">Negative Sentiment</div>
+                <div class="value" style="color: #d13438;">36.8%</div>
+                <div class="trend">(261 of 710)</div>
+            </div>
+            <div class="kpi-card">
+                <div class="label">This Week</div>
+                <div class="value">4</div>
+                <div class="trend up">
+                    &#9650; vs last week (2)
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="label">Data Quality Issues (90d)</div>
+                <div class="value" style="color: #1e3a6e;">14</div>
+                <div class="trend">Across 8 weeks</div>
+            </div>
+        </div>
+
+        <!-- TL;DR -->
+        <div class="tldr" id="tldr">
+            <h3>&#10022; TL;DR</h3>
+            <ul>
+                <li><strong>710 VOCs</strong> analyzed across 47 weeks from 3 channels. Sentiment: 37% negative, 35% neutral, 28% positive.</li>
+                <li><strong>Top category:</strong> Other / Praise (453 VOCs, 64%)</li>
+                <li><strong>HVC ($299+) segment:</strong> 430 VOCs with 35% negative sentiment vs 41% for paid &lt;$299</li>
+                <li><strong>Data quality verdict (90d):</strong> accuracy: reduced, consistency: steady, availability: steady, freshness: steady, coverage: reduced</li>
+            </ul>
+        </div>
+
+        <!-- Section 2: Weekly Sentiment Trend -->
+        <div class="section-title" id="weekly-trend">Weekly Sentiment Trend</div>
+        <div class="card">
+            <h3><span class="icon">&#10022;</span> Weekly Sentiment Trend — 15 Months</h3>
+            <div id="weekly-trend-chart" class="chart-container"></div>
+        </div>
+
+        <!-- Section 3: Segment Breakdown -->
+        <div class="section-title" id="segments">Segment Breakdown</div>
+        <div class="segment-grid">
+            
+            <div class="seg-card">
+                <div class="seg-label">All Customers</div>
+                <div class="seg-value">710</div>
+                <div class="seg-detail" style="color: #d13438;">37% negative</div>
+                <div class="seg-detail">202 positive / 247 neutral</div>
+            </div>
+            <div class="seg-card">
+                <div class="seg-label">Free</div>
+                <div class="seg-value">2</div>
+                <div class="seg-detail" style="color: #d13438;">0% negative</div>
+                <div class="seg-detail">1 positive / 1 neutral</div>
+            </div>
+            <div class="seg-card">
+                <div class="seg-label">All Paid</div>
+                <div class="seg-value">624</div>
+                <div class="seg-detail" style="color: #d13438;">37% negative</div>
+                <div class="seg-detail">174 positive / 220 neutral</div>
+            </div>
+            <div class="seg-card">
+                <div class="seg-label">Paid ≥$299</div>
+                <div class="seg-value">430</div>
+                <div class="seg-detail" style="color: #d13438;">35% negative</div>
+                <div class="seg-detail">119 positive / 161 neutral</div>
+            </div>
+            <div class="seg-card">
+                <div class="seg-label">Paid <$299</div>
+                <div class="seg-value">194</div>
+                <div class="seg-detail" style="color: #d13438;">41% negative</div>
+                <div class="seg-detail">55 positive / 59 neutral</div>
+            </div>
+        </div>
+        <div class="card">
+            <h3><span class="icon">&#10022;</span> Sentiment by Segment</h3>
+            <div id="segment-chart" class="chart-container"></div>
+        </div>
+
+        <!-- Section 4: Category Distribution -->
+        <div class="section-title" id="categories">Category Distribution</div>
+        <div class="card">
+            <h3><span class="icon">&#10022;</span> Category Breakdown — Weekly Stacked Area</h3>
+            <div id="category-chart" class="chart-container"></div>
+        </div>
+        <div class="card">
+            <h3><span class="icon">&#10022;</span> Category Distribution — Overall</h3>
+            <div id="category-pie-chart" class="chart-container"></div>
+        </div>
+
+        <!-- Section 5: Change Since Aug 2025 -->
+        <div class="section-title" id="change">Change Since Aug 2025</div>
+        <div class="card">
+            <h3><span class="icon">&#10022;</span> Category % Change: Pre-Aug vs Post-Aug 2025</h3>
+            <table class="change-table">
+                <tr><th>Category</th><th>Pre-Aug 2025</th><th>Post-Aug 2025</th><th>Delta</th><th>Status</th></tr>
+                <tr>
+                    <td>Feature Gap</td>
+                    <td>7.8%</td>
+                    <td>6.8%</td>
+                    <td style="color: #1aab68">-1.0pp</td>
+                    <td><span class="badge steady">STEADY</span></td>
+                </tr><tr>
+                    <td>Bug / Error</td>
+                    <td>7.4%</td>
+                    <td>12.5%</td>
+                    <td style="color: #d13438">+5.1pp</td>
+                    <td><span class="badge increased">INCREASED</span></td>
+                </tr><tr>
+                    <td>Data Quality</td>
+                    <td>11.1%</td>
+                    <td>15.7%</td>
+                    <td style="color: #d13438">+4.6pp</td>
+                    <td><span class="badge increased">INCREASED</span></td>
+                </tr><tr>
+                    <td>Performance / UX</td>
+                    <td>4.1%</td>
+                    <td>4.8%</td>
+                    <td style="color: #d13438">+0.7pp</td>
+                    <td><span class="badge steady">STEADY</span></td>
+                </tr><tr>
+                    <td>Other / Praise</td>
+                    <td>69.6%</td>
+                    <td>60.2%</td>
+                    <td style="color: #1aab68">-9.4pp</td>
+                    <td><span class="badge reduced">REDUCED</span></td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Section 6: 90-Day Data Quality Deep Dive -->
+        <div class="section-title" id="dq-deep-dive">90-Day Data Quality Deep Dive</div>
+        <div class="card">
+            <h3><span class="icon">&#10022;</span> Data Quality Subcategory Trends — Last 90 Days</h3>
+            <div id="dq-trend-chart" class="chart-container"></div>
+            <table class="change-table" style="margin-top: 16px;">
+                <tr><th>Subcategory</th><th>Count (90d)</th><th>Trend</th></tr>
+                <tr>
+                    <td>Accuracy</td>
+                    <td>5</td>
+                    <td><span class="badge reduced">REDUCED</span></td>
+                </tr><tr>
+                    <td>Consistency</td>
+                    <td>2</td>
+                    <td><span class="badge steady">STEADY</span></td>
+                </tr><tr>
+                    <td>Availability</td>
+                    <td>4</td>
+                    <td><span class="badge steady">STEADY</span></td>
+                </tr><tr>
+                    <td>Freshness</td>
+                    <td>0</td>
+                    <td><span class="badge steady">STEADY</span></td>
+                </tr><tr>
+                    <td>Coverage</td>
+                    <td>3</td>
+                    <td><span class="badge reduced">REDUCED</span></td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Section 7: Top 10 Recent Negative VOCs -->
+        <div class="section-title" id="top-negative">Top 10 Recent Negative VOCs</div>
+        <div class="card">
+            <h3><span class="icon">&#10022;</span> Most Recent Negative Customer Feedback</h3>
+            <div class="voc-list">
+                <div class="voc-item">
+                    <div class="voc-meta">
+                        2026-03-31 | hvc_escalation | MRR: $57000 | Data Quality
+                    </div>
+                    <div class="voc-text">Add validation that prevents saving an Opt-in Request message if the required "reply Y" confirmation prompt language is missing. If the message can't be fully locked, customer wants at minimum an erro...</div>
+                </div><div class="voc-item">
+                    <div class="voc-meta">
+                        2026-03-31 | hvc_escalation | MRR: $57000 | Other Or Praise
+                    </div>
+                    <div class="voc-text">Prevent accidental modification of the SMS "Opt-in Request" message. Customer wants this compliance-critical message locked or restricted so marketing team members cannot inadvertently break the doubl...</div>
+                </div><div class="voc-item">
+                    <div class="voc-meta">
+                        2026-03-26 | hvc_escalation | MRR: $6664 | Data Quality
+                    </div>
+                    <div class="voc-text">Number discrepancy between Custom Reports & Campaign View
+
+Goal: Have a single, reliable source of truth for campaign performance metrics, particularly unsubscribes and bounces, regardless of where C1...</div>
+                </div><div class="voc-item">
+                    <div class="voc-meta">
+                        2026-03-16 | hvc_escalation | MRR: $10700 | Feature Gap
+                    </div>
+                    <div class="voc-text">Over on Beehive and Bigmailer we can create segments based on whether a User has Clicked X times in X Days. I cannot describe how useful it would be to have this ability on our Mailchimp RSS sends.  P...</div>
+                </div><div class="voc-item">
+                    <div class="voc-meta">
+                        2026-03-06 | hvc_escalation | MRR: $57000 | Bug Or Error
+                    </div>
+                    <div class="voc-text">Core Need: Implement an automated Global Frequency Cap to manage marketing pressure during high-volume periods (e.g., "Announcement Season").
+
+The primary objective is to maintain a premium fan experi...</div>
+                </div><div class="voc-item">
+                    <div class="voc-meta">
+                        2026-03-05 | hvc_escalation | MRR: $5700 | Other Or Praise
+                    </div>
+                    <div class="voc-text">use the chatgpt x Mailchimp connector to review analytics within chatgpt | the connector doesn't expose Mailchimp data, so it can't read campaigns or analyze data</div>
+                </div><div class="voc-item">
+                    <div class="voc-meta">
+                        2026-03-02 | hvc_escalation | MRR: $36458 | Bug Or Error
+                    </div>
+                    <div class="voc-text">Creative Fabrica (UID: 48624181) is trying to fetch campaign data from the Mailchimp /reports endpoint via their self-hosted Airbyte ETL tool. While other tables (lists, tags, campaigns) sync successf...</div>
+                </div><div class="voc-item">
+                    <div class="voc-meta">
+                        2026-02-11 | hvc_escalation | MRR: $5669 | Bug Or Error
+                    </div>
+                    <div class="voc-text">When Microsoft was having delivery issues back in January, a bunch of emails bounced for The Baltimore Banner. They believe that these emails bounced erroneously and would like to bring them back into...</div>
+                </div><div class="voc-item">
+                    <div class="voc-meta">
+                        2026-01-29 | hvc_escalation | MRR: $12070 | Other Or Praise
+                    </div>
+                    <div class="voc-text">The customer operates in a multitude of countries, some where SMS is available (Spain, Germany), some that are coming (Poland), some where it isn't and aren't coming imminently (Mexico, Colombia).
+The...</div>
+                </div><div class="voc-item">
+                    <div class="voc-meta">
+                        2026-01-23 | hvc_escalation | MRR: $5600 | Performance Ux
+                    </div>
+                    <div class="voc-text">Customer needs to load reports, but it's taking a long time. I will attach a video. | Cannot access data in a timely manner - have to wait around and check back later.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 8: Agent QA Footer -->
+        <div class="section-title" id="qa">Agent QA</div>
+        <div class="qa-footer">
+            <strong>Agent QA Footer</strong>
+            <div class="qa-grid">
+                <div class="qa-item">
+                    <div class="qa-val">11.8%</div>
+                    <div>Unknown Tier</div>
+                </div>
+                <div class="qa-item">
+                    <div class="qa-val">27</div>
+                    <div>Cross-Channel Dupes Found</div>
+                </div>
+                <div class="qa-item">
+                    <div class="qa-val">3</div>
+                    <div>Channels Ingested</div>
+                </div>
+                <div class="qa-item">
+                    <div class="qa-val">47</div>
+                    <div>Weeks Analyzed</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ── Weekly Sentiment Trend ──────────────────────────────────────────
+    Plotly.newPlot('weekly-trend-chart', [
+        {
+            x: ["2025-W09", "2025-W10", "2025-W11", "2025-W12", "2025-W13", "2025-W14", "2025-W21", "2025-W22", "2025-W23", "2025-W24", "2025-W25", "2025-W26", "2025-W27", "2025-W32", "2025-W33", "2025-W34", "2025-W35", "2025-W36", "2025-W37", "2025-W38", "2025-W39", "2025-W40", "2025-W42", "2025-W43", "2025-W44", "2025-W45", "2025-W46", "2025-W47", "2025-W49", "2025-W50", "2025-W51", "2025-W52", "2026-W01", "2026-W02", "2026-W03", "2026-W04", "2026-W05", "2026-W06", "2026-W07", "2026-W08", "2026-W09", "2026-W10", "2026-W11", "2026-W12", "2026-W13", "2026-W14", "2026-W15"],
+            y: [3, 11, 9, 6, 7, 3, 5, 4, 4, 4, 22, 18, 2, 8, 5, 2, 9, 6, 5, 20, 20, 2, 1, 3, 0, 5, 0, 0, 8, 17, 27, 7, 5, 1, 1, 2, 1, 0, 1, 0, 0, 3, 0, 1, 1, 2, 0],
+            name: 'Negative',
+            type: 'bar',
+            marker: { color: '#f4809b' }
+        },
+        {
+            x: ["2025-W09", "2025-W10", "2025-W11", "2025-W12", "2025-W13", "2025-W14", "2025-W21", "2025-W22", "2025-W23", "2025-W24", "2025-W25", "2025-W26", "2025-W27", "2025-W32", "2025-W33", "2025-W34", "2025-W35", "2025-W36", "2025-W37", "2025-W38", "2025-W39", "2025-W40", "2025-W42", "2025-W43", "2025-W44", "2025-W45", "2025-W46", "2025-W47", "2025-W49", "2025-W50", "2025-W51", "2025-W52", "2026-W01", "2026-W02", "2026-W03", "2026-W04", "2026-W05", "2026-W06", "2026-W07", "2026-W08", "2026-W09", "2026-W10", "2026-W11", "2026-W12", "2026-W13", "2026-W14", "2026-W15"],
+            y: [3, 9, 6, 6, 3, 1, 4, 2, 5, 3, 11, 25, 3, 3, 5, 2, 5, 4, 1, 17, 13, 5, 2, 3, 1, 5, 3, 3, 9, 11, 24, 10, 2, 1, 0, 8, 1, 2, 2, 1, 2, 5, 4, 4, 4, 0, 4],
+            name: 'Neutral',
+            type: 'bar',
+            marker: { color: '#4472c4' }
+        },
+        {
+            x: ["2025-W09", "2025-W10", "2025-W11", "2025-W12", "2025-W13", "2025-W14", "2025-W21", "2025-W22", "2025-W23", "2025-W24", "2025-W25", "2025-W26", "2025-W27", "2025-W32", "2025-W33", "2025-W34", "2025-W35", "2025-W36", "2025-W37", "2025-W38", "2025-W39", "2025-W40", "2025-W42", "2025-W43", "2025-W44", "2025-W45", "2025-W46", "2025-W47", "2025-W49", "2025-W50", "2025-W51", "2025-W52", "2026-W01", "2026-W02", "2026-W03", "2026-W04", "2026-W05", "2026-W06", "2026-W07", "2026-W08", "2026-W09", "2026-W10", "2026-W11", "2026-W12", "2026-W13", "2026-W14", "2026-W15"],
+            y: [6, 6, 2, 5, 5, 0, 4, 7, 6, 4, 24, 19, 3, 1, 2, 7, 6, 4, 2, 14, 15, 4, 0, 0, 0, 0, 1, 0, 3, 19, 21, 7, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            name: 'Positive',
+            type: 'bar',
+            marker: { color: '#00b9a9' }
+        }
+    ], {
+        barmode: 'stack',
+        margin: { l: 50, r: 20, t: 20, b: 60 },
+        xaxis: { title: 'ISO Week', tickangle: -45, dtick: 4 },
+        yaxis: { title: 'VOC Count' },
+        font: { family: "'Avenir Next', -apple-system, sans-serif" },
+        legend: { orientation: 'h', y: 1.1 },
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        paper_bgcolor: 'rgba(0,0,0,0)',
+    }, { responsive: true });
+
+    // ── Segment Comparison ──────────────────────────────────────────────
+    Plotly.newPlot('segment-chart', [
+        {
+            x: ["All Customers", "Free", "All Paid", "Paid \u2265$299", "Paid <$299"],
+            y: [261, 0, 230, 150, 80],
+            name: 'Negative', type: 'bar', marker: { color: '#f4809b' }
+        },
+        {
+            x: ["All Customers", "Free", "All Paid", "Paid \u2265$299", "Paid <$299"],
+            y: [247, 1, 220, 161, 59],
+            name: 'Neutral', type: 'bar', marker: { color: '#4472c4' }
+        },
+        {
+            x: ["All Customers", "Free", "All Paid", "Paid \u2265$299", "Paid <$299"],
+            y: [202, 1, 174, 119, 55],
+            name: 'Positive', type: 'bar', marker: { color: '#00b9a9' }
+        }
+    ], {
+        barmode: 'stack',
+        margin: { l: 50, r: 20, t: 20, b: 60 },
+        yaxis: { title: 'VOC Count' },
+        font: { family: "'Avenir Next', -apple-system, sans-serif" },
+        legend: { orientation: 'h', y: 1.1 },
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        paper_bgcolor: 'rgba(0,0,0,0)',
+    }, { responsive: true });
+
+    // ── Category Stacked Area ───────────────────────────────────────────
+    Plotly.newPlot('category-chart', [
+        {
+            x: ["2025-W09", "2025-W10", "2025-W11", "2025-W12", "2025-W13", "2025-W14", "2025-W21", "2025-W22", "2025-W23", "2025-W24", "2025-W25", "2025-W26", "2025-W27", "2025-W32", "2025-W33", "2025-W34", "2025-W35", "2025-W36", "2025-W37", "2025-W38", "2025-W39", "2025-W40", "2025-W42", "2025-W43", "2025-W44", "2025-W45", "2025-W46", "2025-W47", "2025-W49", "2025-W50", "2025-W51", "2025-W52", "2026-W01", "2026-W02", "2026-W03", "2026-W04", "2026-W05", "2026-W06", "2026-W07", "2026-W08", "2026-W09", "2026-W10", "2026-W11", "2026-W12", "2026-W13", "2026-W14", "2026-W15"],
+            y: [1, 0, 2, 0, 0, 0, 0, 2, 1, 0, 9, 6, 0, 3, 2, 1, 1, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 1, 3, 2, 3, 4, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+            name: 'Feature Gap',
+            stackgroup: 'one',
+            line: { width: 0 },
+        },{
+            x: ["2025-W09", "2025-W10", "2025-W11", "2025-W12", "2025-W13", "2025-W14", "2025-W21", "2025-W22", "2025-W23", "2025-W24", "2025-W25", "2025-W26", "2025-W27", "2025-W32", "2025-W33", "2025-W34", "2025-W35", "2025-W36", "2025-W37", "2025-W38", "2025-W39", "2025-W40", "2025-W42", "2025-W43", "2025-W44", "2025-W45", "2025-W46", "2025-W47", "2025-W49", "2025-W50", "2025-W51", "2025-W52", "2026-W01", "2026-W02", "2026-W03", "2026-W04", "2026-W05", "2026-W06", "2026-W07", "2026-W08", "2026-W09", "2026-W10", "2026-W11", "2026-W12", "2026-W13", "2026-W14", "2026-W15"],
+            y: [1, 0, 1, 1, 2, 1, 1, 1, 1, 3, 1, 7, 0, 2, 2, 0, 2, 3, 1, 5, 6, 1, 0, 0, 0, 2, 1, 0, 2, 2, 12, 3, 4, 0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0, 0, 0, 1],
+            name: 'Bug / Error',
+            stackgroup: 'one',
+            line: { width: 0 },
+        },{
+            x: ["2025-W09", "2025-W10", "2025-W11", "2025-W12", "2025-W13", "2025-W14", "2025-W21", "2025-W22", "2025-W23", "2025-W24", "2025-W25", "2025-W26", "2025-W27", "2025-W32", "2025-W33", "2025-W34", "2025-W35", "2025-W36", "2025-W37", "2025-W38", "2025-W39", "2025-W40", "2025-W42", "2025-W43", "2025-W44", "2025-W45", "2025-W46", "2025-W47", "2025-W49", "2025-W50", "2025-W51", "2025-W52", "2026-W01", "2026-W02", "2026-W03", "2026-W04", "2026-W05", "2026-W06", "2026-W07", "2026-W08", "2026-W09", "2026-W10", "2026-W11", "2026-W12", "2026-W13", "2026-W14", "2026-W15"],
+            y: [0, 6, 3, 7, 4, 0, 3, 0, 2, 1, 2, 2, 0, 4, 4, 1, 5, 2, 1, 3, 3, 1, 0, 0, 0, 2, 0, 1, 4, 8, 9, 3, 3, 1, 1, 6, 1, 0, 0, 1, 0, 0, 1, 0, 2, 1, 1],
+            name: 'Data Quality',
+            stackgroup: 'one',
+            line: { width: 0 },
+        },{
+            x: ["2025-W09", "2025-W10", "2025-W11", "2025-W12", "2025-W13", "2025-W14", "2025-W21", "2025-W22", "2025-W23", "2025-W24", "2025-W25", "2025-W26", "2025-W27", "2025-W32", "2025-W33", "2025-W34", "2025-W35", "2025-W36", "2025-W37", "2025-W38", "2025-W39", "2025-W40", "2025-W42", "2025-W43", "2025-W44", "2025-W45", "2025-W46", "2025-W47", "2025-W49", "2025-W50", "2025-W51", "2025-W52", "2026-W01", "2026-W02", "2026-W03", "2026-W04", "2026-W05", "2026-W06", "2026-W07", "2026-W08", "2026-W09", "2026-W10", "2026-W11", "2026-W12", "2026-W13", "2026-W14", "2026-W15"],
+            y: [1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 3, 2, 0, 0, 0, 3, 0, 2, 0, 3, 2, 0, 1, 0, 0, 0, 0, 0, 0, 2, 1, 3, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1],
+            name: 'Performance / UX',
+            stackgroup: 'one',
+            line: { width: 0 },
+        },{
+            x: ["2025-W09", "2025-W10", "2025-W11", "2025-W12", "2025-W13", "2025-W14", "2025-W21", "2025-W22", "2025-W23", "2025-W24", "2025-W25", "2025-W26", "2025-W27", "2025-W32", "2025-W33", "2025-W34", "2025-W35", "2025-W36", "2025-W37", "2025-W38", "2025-W39", "2025-W40", "2025-W42", "2025-W43", "2025-W44", "2025-W45", "2025-W46", "2025-W47", "2025-W49", "2025-W50", "2025-W51", "2025-W52", "2026-W01", "2026-W02", "2026-W03", "2026-W04", "2026-W05", "2026-W06", "2026-W07", "2026-W08", "2026-W09", "2026-W10", "2026-W11", "2026-W12", "2026-W13", "2026-W14", "2026-W15"],
+            y: [9, 19, 10, 9, 9, 3, 8, 9, 11, 6, 42, 45, 8, 3, 4, 6, 12, 5, 4, 38, 35, 9, 2, 6, 1, 6, 3, 1, 11, 33, 47, 11, 5, 1, 0, 0, 1, 2, 1, 0, 1, 5, 3, 4, 3, 1, 1],
+            name: 'Other / Praise',
+            stackgroup: 'one',
+            line: { width: 0 },
+        }
+    ], {
+        margin: { l: 50, r: 20, t: 20, b: 60 },
+        xaxis: { title: 'ISO Week', tickangle: -45, dtick: 4 },
+        yaxis: { title: 'VOC Count' },
+        font: { family: "'Avenir Next', -apple-system, sans-serif" },
+        legend: { orientation: 'h', y: 1.1 },
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        colorway: ['#1e3a6e', '#d13438', '#f5a623', '#f4809b', '#00b9a9'],
+    }, { responsive: true });
+
+    // ── Category Pie ────────────────────────────────────────────────────
+    Plotly.newPlot('category-pie-chart', [{
+        values: [51, 75, 99, 32, 453],
+        labels: ["Feature Gap", "Bug / Error", "Data Quality", "Performance / UX", "Other / Praise"],
+        type: 'pie',
+        hole: 0.4,
+        marker: { colors: ['#1e3a6e', '#d13438', '#f5a623', '#f4809b', '#00b9a9'] },
+        textinfo: 'label+percent',
+        textposition: 'outside',
+    }], {
+        margin: { l: 20, r: 20, t: 20, b: 20 },
+        font: { family: "'Avenir Next', -apple-system, sans-serif" },
+        showlegend: false,
+    }, { responsive: true });
+
+    // ── DQ Subcategory Trend ────────────────────────────────────────────
+    Plotly.newPlot('dq-trend-chart', [
+        {
+            x: ["2026-W03", "2026-W04", "2026-W05", "2026-W08", "2026-W11", "2026-W13", "2026-W14", "2026-W15"],
+            y: [1, 1, 0, 1, 0, 1, 0, 1],
+            name: 'Accuracy',
+            type: 'scatter',
+            mode: 'lines+markers',
+        },{
+            x: ["2026-W03", "2026-W04", "2026-W05", "2026-W08", "2026-W11", "2026-W13", "2026-W14", "2026-W15"],
+            y: [0, 1, 0, 0, 0, 1, 0, 0],
+            name: 'Consistency',
+            type: 'scatter',
+            mode: 'lines+markers',
+        },{
+            x: ["2026-W03", "2026-W04", "2026-W05", "2026-W08", "2026-W11", "2026-W13", "2026-W14", "2026-W15"],
+            y: [0, 2, 0, 0, 1, 0, 1, 0],
+            name: 'Availability',
+            type: 'scatter',
+            mode: 'lines+markers',
+        },{
+            x: ["2026-W03", "2026-W04", "2026-W05", "2026-W08", "2026-W11", "2026-W13", "2026-W14", "2026-W15"],
+            y: [0, 0, 0, 0, 0, 0, 0, 0],
+            name: 'Freshness',
+            type: 'scatter',
+            mode: 'lines+markers',
+        },{
+            x: ["2026-W03", "2026-W04", "2026-W05", "2026-W08", "2026-W11", "2026-W13", "2026-W14", "2026-W15"],
+            y: [0, 2, 1, 0, 0, 0, 0, 0],
+            name: 'Coverage',
+            type: 'scatter',
+            mode: 'lines+markers',
+        }
+    ], {
+        margin: { l: 50, r: 20, t: 20, b: 60 },
+        xaxis: { title: 'ISO Week' },
+        yaxis: { title: 'Count' },
+        font: { family: "'Avenir Next', -apple-system, sans-serif" },
+        legend: { orientation: 'h', y: 1.1 },
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        colorway: ['#1e3a6e', '#4472c4', '#00b9a9', '#f5a623', '#f4809b'],
+    }, { responsive: true });
+
+    // ── Active nav highlighting ─────────────────────────────────────────
+    const navLinks = document.querySelectorAll('.sidebar nav a');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                navLinks.forEach(a => a.classList.remove('active'));
+                const link = document.querySelector(`.sidebar nav a[href="#${entry.target.id}"]`);
+                if (link) link.classList.add('active');
+            }
+        });
+    }, { threshold: 0.3 });
+    document.querySelectorAll('.section-title, .tldr').forEach(el => observer.observe(el));
+    </script>
+</body>
+</html>

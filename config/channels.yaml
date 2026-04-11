@@ -1,0 +1,44 @@
+# R&A VOC Analyzer — Slack Channel Configuration
+# Confirmed channel IDs from live Slack exploration on 2026-04-10
+
+channels:
+  feedback:
+    id: "C06SW7512P2"
+    name: "#mc-reporting-analytics-feedback"
+    description: "In-app feedback badge + survey responses (Qualtrics bot)"
+    parser: "parser_feedback"
+    start_date: "2025-01-01"
+    bot_ids:
+      - "W017BFA7JKT"  # Qualtrics
+
+  hvc_feedback:
+    id: "C051Y4H98VB"
+    name: "#hvc_feedback"
+    description: "HVC ($299+) feedback from VOC surveys — CSAT, PRS, Feedback Badge"
+    parser: "parser_hvc"
+    start_date: "2025-01-01"
+    bot_ids:
+      - "W017BFA7JKT"  # Qualtrics
+    notes: "Overlaps with feedback channel for HVC customers — dedup required"
+
+  hvc_escalations:
+    id: "C095FJ3SQF4"
+    name: "#mc-hvc-escalations"
+    description: "Structured HVC product feedback and escalations"
+    parser: "parser_escalation"
+    start_date: "2025-07-11"  # Channel created July 11, 2025
+    bot_ids:
+      - "B082KKRGCF2"  # Existing Customer Feedback Intake (Global)
+      - "B08H518SF6F"  # Product Help (CSM - OB - PDM)
+    notes: "No data before July 2025. Enterprise tier ($6K-$57K MRR)."
+
+# Backfill window
+backfill:
+  start_date: "2025-01-01"
+  timezone: "America/Los_Angeles"
+  iso_week_start: "monday"
+
+# Incremental ingestion
+incremental:
+  lookback_days: 14       # Pull last 14 days each run
+  overlap_safety_days: 7  # 7-day overlap for late edits / threaded replies

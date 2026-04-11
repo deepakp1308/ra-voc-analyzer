@@ -1,0 +1,4 @@
+# file: /Users/dprabhakara/ai_workspace/ra-voc-analyzer/src/voc_agent/classification/csat_mapper.py
+# hypothesis_version: 6.151.12
+
+[-0.9, -0.5, 0.0, 0.5, 0.9, 'ausgezeichnet', 'average', 'bom', 'bon', 'bueno', 'buono', 'durchschnittlich', 'eccellente', 'excelente', 'excellent', 'gemiddeld', 'goed', 'good', 'gut', 'horrible', 'malo', 'mauvais', 'medio', 'moyen', 'médio', 'negative', 'nella media', 'neutral', 'poor', 'positive', 'promedio', 'regular', 'ruim', 'scarso', 'schlecht', 'schrecklich', 'slecht', 'terribile', 'terrible', 'terrivel', 'terrível', 'tres bon', 'très bon', 'uitstekend', 'verschrikkelijk']

@@ -1,0 +1,4 @@
+# file: /Users/dprabhakara/ai_workspace/ra-voc-analyzer/src/voc_agent/enrichment/inline_enricher.py
+# hypothesis_version: 6.151.12
+
+['customer_tier', 'enrichment_source', 'free', 'inline', 'mrr_usd', 'none', 'paid_gte_299', 'paid_lt_299', 'unknown']

@@ -1,0 +1,35 @@
+# R&A VOC Analyzer — Customer Segment Definitions
+
+segments:
+  all:
+    label: "All Customers"
+    description: "Everyone including free, paid, and unknown tier"
+    filter: null  # No filter — includes everything
+
+  free:
+    label: "Free"
+    description: "MRR == 0 or null with Free plan indicator"
+    mrr_min: null
+    mrr_max: 0
+
+  paid:
+    label: "All Paid"
+    description: "Any customer with MRR > 0"
+    mrr_min: 0.01
+    mrr_max: null
+
+  paid_gte_299:
+    label: "Paid >= $299 MRR"
+    description: "High-value customers (HVC threshold)"
+    mrr_min: 299.00
+    mrr_max: null
+
+  paid_lt_299:
+    label: "Paid < $299 MRR"
+    description: "Standard paid customers below HVC threshold"
+    mrr_min: 0.01
+    mrr_max: 298.99
+
+# Note: unknown-tier rows (no MRR, no resolvable customer) appear in 'all' only.
+# The report QA footer calls out unknown-tier % per week.
+mrr_boundary: 299.00  # Inclusive on upper bucket (>= 299 = HVC)

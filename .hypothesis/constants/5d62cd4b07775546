@@ -1,0 +1,4 @@
+# file: /Users/dprabhakara/ai_workspace/ra-voc-analyzer/src/voc_agent/classification/contracts.py
+# hypothesis_version: 6.151.12
+
+[-1.0, 0.0, 1.0, 299.0, 240, 'accuracy', 'after', 'availability', 'bug_or_error', 'consistency', 'coverage', 'data_quality', 'feature_gap', 'free', 'freshness', 'negative', 'neutral', 'other_or_praise', 'paid_gte_299', 'paid_lt_299', 'performance_ux', 'positive', 'unknown']

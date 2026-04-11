@@ -1,0 +1,4 @@
+# file: /Users/dprabhakara/ai_workspace/ra-voc-analyzer/src/voc_agent/dedup/hash_dedup.py
+# hypothesis_version: 6.151.12
+
+['C051Y4H98VB', 'C06SW7512P2', 'C095FJ3SQF4', 'canonical_text', 'channel_id', 'content_hash', 'customer_id', 'customer_tier', 'dedup_complete', 'dup_count', 'enrichment_source', 'first_seen_utc', 'id', 'iso_week', 'iso_week_first_seen', 'last_seen_utc', 'mrr_usd', 'none', 'parsed_feedback', 'parsed_mrr', 'parsed_user_id', 'posted_at_utc', 'source_message_ids', 'ts', 'unknown', 'voc_id']

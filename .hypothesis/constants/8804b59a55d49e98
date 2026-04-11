@@ -1,0 +1,4 @@
+# file: /Users/dprabhakara/ai_workspace/ra-voc-analyzer/src/voc_agent/storage/db.py
+# hypothesis_version: 6.151.12
+
+['data/voc.db', 'database_initialized']

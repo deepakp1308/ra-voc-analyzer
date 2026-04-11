@@ -1,0 +1,4 @@
+# file: /Users/dprabhakara/ai_workspace/ra-voc-analyzer/src/voc_agent/analysis/deep_dive.py
+# hypothesis_version: 6.151.12
+
+[0.0, 0.85, 1.15, 300, 'accuracy', 'all', 'availability', 'canonical_text', 'confidence', 'consistency', 'coverage', 'customer_tier', 'direction', 'first_4wk_mean', 'freshness', 'increased', 'insufficient_data', 'iso_week', 'last_4wk_mean', 'mrr', 'mrr_usd', 'paid', 'records', 'reduced', 'slope', 'steady', 'subcategory', 'subcategory_slopes', 'subcategory_trends', 'text', 'tier', 'top_examples', 'total_count', 'voc_count']

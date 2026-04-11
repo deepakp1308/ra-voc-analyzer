@@ -1,0 +1,4 @@
+# file: /Users/dprabhakara/ai_workspace/ra-voc-analyzer/src/voc_agent/ingestion/parser_feedback.py
+# hypothesis_version: 6.151.12
+
+['\\*User ID:\\*\\s*(\\d+)', 'csat_raw', 'feedback_text', 'fullstory_url', 'mrr', 'null', 'page_url', 'plan', 'survey_type', 'user_id']

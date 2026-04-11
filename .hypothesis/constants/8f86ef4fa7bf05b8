@@ -1,0 +1,4 @@
+# file: /Users/dprabhakara/ai_workspace/ra-voc-analyzer/src/voc_agent/analysis/trends.py
+# hypothesis_version: 6.151.12
+
+[0.0, 100.0, 100, 'W', 'absolute_delta', 'all', 'current_count', 'current_month', 'current_smoothed', 'current_week', 'iso_week', 'month', 'negative', 'negative_ratio', 'negative_ratio_ma4', 'pct_delta', 'prior_count', 'prior_month', 'prior_quarter_total', 'prior_smoothed', 'prior_year_week', 'segment', 'sentiment', 'total', 'total_ma4', 'voc_count']

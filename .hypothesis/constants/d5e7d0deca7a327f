@@ -1,0 +1,4 @@
+# file: /Users/dprabhakara/ai_workspace/ra-voc-analyzer/src/voc_agent/ingestion/parser_escalation.py
+# hypothesis_version: 6.151.12
+
+[500, ' | ', '*', '*CC*', '*SF Case*', ':', ':successtse:', 'Escalation', '\\*Customer Name\\*', '\\*Impacted Product\\*', '\\*MRR\\*:\\s*(\\d+)', '\\*MRR\\*[:\\s]*(\\d+)', '\\*MRR\\*\\s*\\n(\\d+)', '\\*Source\\*', 'constraints', 'criticality', 'csat_raw', 'customer_name', 'feedback_text', 'fullstory_url', 'goal', 'impacted_product', 'mrr', 'page_url', 'plan', 'source_team', 'submitter', 'survey_type', 'user_id']

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>R&A VOC Weekly Report — {{ current_week }}</title>
+    <script src="https://cdn.plot.ly/plotly-2.35.0.min.js"></script>
+    <style>
+        :root {
+            --navy: {{ colors.navy }};
+            --blue: {{ colors.blue }};
+            --teal: {{ colors.teal }};
+            --pink: {{ colors.pink }};
+            --green: {{ colors.green }};
+            --red: {{ colors.red }};
+            --bg: {{ colors.bg }};
+            --card: {{ colors.card }};
+            --text-primary: {{ colors.text_primary }};
+            --text-secondary: {{ colors.text_secondary }};
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Avenir Next', -apple-system, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+
+        .header {
+            background: var(--navy);
+            color: white;
+            padding: 24px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header h1 { font-size: 24px; font-weight: 600; }
+        .header .week-badge {
+            background: rgba(255,255,255,0.15);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+        .card {
+            background: var(--card);
+            border: 1px solid #e8edf5;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(26,40,96,0.08);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--navy);
+        }
+
+        .tldr-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .metric-card {
+            text-align: center;
+            padding: 16px;
+            border-radius: 8px;
+            background: var(--bg);
+        }
+
+        .metric-card .number {
+            font-size: 32px;
+            font-weight: 600;
+            color: var(--navy);
+        }
+
+        .metric-card .label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        .metric-card.positive .number { color: var(--teal); }
+        .metric-card.negative .number { color: var(--pink); }
+        .metric-card.neutral .number { color: var(--blue); }
+
+        .chart-container { width: 100%; min-height: 400px; }
+
+        .segment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .segment-card {
+            background: var(--bg);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .segment-card .seg-name { font-size: 12px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; }
+        .segment-card .seg-total { font-size: 28px; font-weight: 600; color: var(--navy); }
+        .segment-card .seg-neg { font-size: 14px; color: var(--pink); }
+
+        .delta-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .delta-table th { text-align: left; padding: 8px 12px; border-bottom: 2px solid var(--navy); color: var(--navy); }
+        .delta-table td { padding: 8px 12px; border-bottom: 1px solid #e8edf5; }
+        .delta-table .improved { color: var(--green); font-weight: 600; }
+        .delta-table .degraded { color: var(--red); font-weight: 600; }
+        .delta-table .steady { color: var(--text-secondary); }
+
+        .voc-item {
+            padding: 12px 0;
+            border-bottom: 1px solid #e8edf5;
+        }
+        .voc-item:last-child { border-bottom: none; }
+        .voc-text { font-size: 14px; color: var(--text-primary); }
+        .voc-meta { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+        .voc-meta .cat-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            background: var(--bg);
+        }
+
+        .qa-footer {
+            background: var(--navy);
+            color: rgba(255,255,255,0.7);
+            padding: 16px 32px;
+            font-size: 12px;
+            margin-top: 32px;
+            border-radius: 8px;
+        }
+        .qa-footer strong { color: white; }
+
+        .dq-slope {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .dq-slope.reduced { background: #e6f9f0; color: var(--green); }
+        .dq-slope.increased { background: #fde8eb; color: var(--red); }
+        .dq-slope.steady { background: #e8edf5; color: var(--text-secondary); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>R&A VOC Weekly Report</h1>
+        <span class="week-badge">{{ current_week }} &middot; Generated {{ generated_at[:10] }}</span>
+    </div>
+
+    <div class="container">
+        <!-- Section 1: TL;DR -->
+        <div class="card">
+            <h2>TL;DR</h2>
+            <div class="tldr-grid">
+                <div class="metric-card">
+                    <div class="number">{{ tldr.total_vocs }}</div>
+                    <div class="label">Total VOCs This Week</div>
+                </div>
+                <div class="metric-card positive">
+                    <div class="number">{{ tldr.sentiment_mix.get('positive', 0) }}</div>
+                    <div class="label">Positive</div>
+                </div>
+                <div class="metric-card neutral">
+                    <div class="number">{{ tldr.sentiment_mix.get('neutral', 0) }}</div>
+                    <div class="label">Neutral</div>
+                </div>
+                <div class="metric-card negative">
+                    <div class="number">{{ tldr.sentiment_mix.get('negative', 0) }}</div>
+                    <div class="label">Negative</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Weekly Sentiment Trend -->
+        <div class="card">
+            <h2>Weekly Sentiment Trend (15 months)</h2>
+            <div id="weekly-trend-chart" class="chart-container"></div>
+        </div>
+
+        <!-- Section 3: Segment Cuts -->
+        <div class="card">
+            <h2>Segment Breakdown — {{ current_week }}</h2>
+            <div class="segment-grid">
+                {% for seg_name, seg_data in segment_cuts.items() %}
+                <div class="segment-card">
+                    <div class="seg-name">{{ seg_name | replace('_', ' ') }}</div>
+                    <div class="seg-total">{{ seg_data.total }}</div>
+                    <div class="seg-neg">{{ seg_data.negative_ratio }}% negative</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Section 4: Category Breakdown -->
+        <div class="card">
+            <h2>Category Distribution (Weekly %)</h2>
+            <div id="category-chart" class="chart-container"></div>
+        </div>
+
+        <!-- Section 5: Since-Aug-2025 Delta Table -->
+        <div class="card">
+            <h2>Change Since Aug 2025</h2>
+            {% for seg_name, deltas in change_deltas.items() %}
+            {% if deltas %}
+            <h3 style="font-size:14px; color:#6b7c93; margin: 12px 0 8px;">{{ seg_name | replace('_', ' ') | title }}</h3>
+            <table class="delta-table">
+                <thead>
+                    <tr><th>Category</th><th>Pre-Aug Weekly Avg</th><th>Post-Aug Weekly Avg</th><th>Change</th><th>Direction</th></tr>
+                </thead>
+                <tbody>
+                {% for d in deltas %}
+                <tr>
+                    <td>{{ d.category | replace('_', ' ') | title }}</td>
+                    <td>{{ d.pre_mean_weekly }}</td>
+                    <td>{{ d.post_mean_weekly }}</td>
+                    <td>{{ d.pct_change }}%</td>
+                    <td class="{{ d.direction }}">{{ d.direction | upper }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+            {% endfor %}
+        </div>
+
+        <!-- Section 6: 90-Day Data Quality Deep Dive -->
+        <div class="card">
+            <h2>90-Day Data Quality Deep Dive</h2>
+            {% if dq_deep_dive.subcategory_slopes %}
+            <table class="delta-table">
+                <thead>
+                    <tr><th>Subcategory</th><th>First 4-Wk Avg</th><th>Last 4-Wk Avg</th><th>Slope</th><th>Trend</th></tr>
+                </thead>
+                <tbody>
+                {% for s in dq_deep_dive.subcategory_slopes %}
+                <tr>
+                    <td>{{ s.subcategory | title }}</td>
+                    <td>{{ s.first_4wk_mean }}</td>
+                    <td>{{ s.last_4wk_mean }}</td>
+                    <td>{{ s.slope }}</td>
+                    <td><span class="dq-slope {{ s.direction }}">{{ s.direction | upper }}</span></td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p style="color: #6b7c93;">Insufficient data quality feedback for deep dive analysis.</p>
+            {% endif %}
+        </div>
+
+        <!-- Section 7: Top Recent Negative VOCs -->
+        <div class="card">
+            <h2>Top 10 Recent Negative VOCs</h2>
+            {% for voc in top_negatives %}
+            <div class="voc-item">
+                <div class="voc-text">{{ voc.text }}</div>
+                <div class="voc-meta">
+                    <span class="cat-badge">{{ voc.category | replace('_', ' ') }}</span>
+                    {% if voc.subcategory %}<span class="cat-badge">{{ voc.subcategory }}</span>{% endif %}
+                    &middot; {{ voc.tier | replace('_', ' ') }}
+                    {% if voc.mrr %}&middot; ${{ voc.mrr | int }} MRR{% endif %}
+                    &middot; {{ voc.week }}
+                </div>
+            </div>
+            {% endfor %}
+            {% if not top_negatives %}
+            <p style="color: #6b7c93;">No negative VOCs found.</p>
+            {% endif %}
+        </div>
+
+        <!-- Section 8: Agent QA Footer -->
+        <div class="qa-footer">
+            <strong>Agent QA</strong> &middot;
+            Report generated {{ generated_at }} &middot;
+            {{ total_weeks }} weeks of data &middot;
+            Week: {{ current_week }}
+        </div>
+    </div>
+
+    <script>
+        // Render Plotly charts from JSON configs
+        {% if weekly_trend_chart and weekly_trend_chart != '{}' %}
+        try {
+            var weeklyData = JSON.parse('{{ weekly_trend_chart | tojson_safe }}');
+            Plotly.newPlot('weekly-trend-chart', weeklyData.data, weeklyData.layout, {responsive: true});
+        } catch(e) { console.warn('Weekly chart render failed:', e); }
+        {% endif %}
+
+        {% if category_chart and category_chart != '{}' %}
+        try {
+            var catData = JSON.parse('{{ category_chart | tojson_safe }}');
+            Plotly.newPlot('category-chart', catData.data, catData.layout, {responsive: true});
+        } catch(e) { console.warn('Category chart render failed:', e); }
+        {% endif %}
+    </script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+# file: /Users/dprabhakara/ai_workspace/ra-voc-analyzer/src/voc_agent/ingestion/parser_hvc.py
+# hypothesis_version: 6.151.12
+
+['<style', '\\*PRS:\\*\\s*(\\d+)', '\\*User ID:\\*\\s*(\\d+)', 'csat_raw', 'feedback_text', 'fullstory_url', 'mrr', 'null', 'page_url', 'plan', 'prs_reason', 'prs_score', 'survey_type', 'user_id']
