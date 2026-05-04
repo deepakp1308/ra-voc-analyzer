@@ -74,7 +74,7 @@
             <a href="#qa">Agent QA</a>
         </nav>
         <div style="position: absolute; bottom: 16px; left: 16px; right: 16px; font-size: 11px; color: rgba(255,255,255,0.4);">
-            Generated: 2026-04-26 23:18 PT<br>
+            Generated: 2026-05-03 23:05 PT<br>
             Data: 2025-W09 to 2026-W15
         </div>
     </div>
@@ -83,7 +83,7 @@
         <div class="header">
             <h1>&#10022; R&A VOC Analyzer — Weekly Insights</h1>
             <div class="subtitle">Customer Voice-of-Customer Analysis for Reporting & Analytics</div>
-            <div class="generated">Data range: 2025-W09 to 2026-W15 | 710 total VOCs across 3 channels | Generated April 26, 2026</div>
+            <div class="generated">Data range: 2025-W09 to 2026-W15 | 710 total VOCs across 3 channels | Generated May 03, 2026</div>
         </div>
 
         <!-- KPI Row -->
@@ -107,8 +107,8 @@
             </div>
             <div class="kpi-card">
                 <div class="label">Data Quality Issues (90d)</div>
-                <div class="value" style="color: #1e3a6e;">7</div>
-                <div class="trend">Across 6 weeks</div>
+                <div class="value" style="color: #1e3a6e;">6</div>
+                <div class="trend">Across 5 weeks</div>
             </div>
         </div>
 
@@ -119,7 +119,7 @@
                 <li><strong>710 VOCs</strong> analyzed across 47 weeks from 3 channels. Sentiment: 37% negative, 35% neutral, 28% positive.</li>
                 <li><strong>Top category:</strong> Other / Praise (453 VOCs, 64%)</li>
                 <li><strong>HVC ($299+) segment:</strong> 430 VOCs with 35% negative sentiment vs 41% for paid &lt;$299</li>
-                <li><strong>Data quality verdict (90d):</strong> accuracy: steady, consistency: steady, availability: increased, freshness: steady, coverage: reduced</li>
+                <li><strong>Data quality verdict (90d):</strong> accuracy: steady, consistency: steady, availability: steady, freshness: steady, coverage: steady</li>
             </ul>
         </div>
 
@@ -239,15 +239,15 @@
                 </tr><tr>
                     <td>Availability</td>
                     <td>2</td>
-                    <td><span class="badge increased">INCREASED</span></td>
+                    <td><span class="badge steady">STEADY</span></td>
                 </tr><tr>
                     <td>Freshness</td>
                     <td>0</td>
                     <td><span class="badge steady">STEADY</span></td>
                 </tr><tr>
                     <td>Coverage</td>
-                    <td>1</td>
-                    <td><span class="badge reduced">REDUCED</span></td>
+                    <td>0</td>
+                    <td><span class="badge steady">STEADY</span></td>
                 </tr>
             </table>
         </div>
@@ -465,32 +465,32 @@ The...</div>
     // ── DQ Subcategory Trend ────────────────────────────────────────────
     Plotly.newPlot('dq-trend-chart', [
         {
-            x: ["2026-W05", "2026-W08", "2026-W11", "2026-W13", "2026-W14", "2026-W15"],
-            y: [0, 1, 0, 1, 0, 1],
+            x: ["2026-W08", "2026-W11", "2026-W13", "2026-W14", "2026-W15"],
+            y: [1, 0, 1, 0, 1],
             name: 'Accuracy',
             type: 'scatter',
             mode: 'lines+markers',
         },{
-            x: ["2026-W05", "2026-W08", "2026-W11", "2026-W13", "2026-W14", "2026-W15"],
-            y: [0, 0, 0, 1, 0, 0],
+            x: ["2026-W08", "2026-W11", "2026-W13", "2026-W14", "2026-W15"],
+            y: [0, 0, 1, 0, 0],
             name: 'Consistency',
             type: 'scatter',
             mode: 'lines+markers',
         },{
-            x: ["2026-W05", "2026-W08", "2026-W11", "2026-W13", "2026-W14", "2026-W15"],
-            y: [0, 0, 1, 0, 1, 0],
+            x: ["2026-W08", "2026-W11", "2026-W13", "2026-W14", "2026-W15"],
+            y: [0, 1, 0, 1, 0],
             name: 'Availability',
             type: 'scatter',
             mode: 'lines+markers',
         },{
-            x: ["2026-W05", "2026-W08", "2026-W11", "2026-W13", "2026-W14", "2026-W15"],
-            y: [0, 0, 0, 0, 0, 0],
+            x: ["2026-W08", "2026-W11", "2026-W13", "2026-W14", "2026-W15"],
+            y: [0, 0, 0, 0, 0],
             name: 'Freshness',
             type: 'scatter',
             mode: 'lines+markers',
         },{
-            x: ["2026-W05", "2026-W08", "2026-W11", "2026-W13", "2026-W14", "2026-W15"],
-            y: [1, 0, 0, 0, 0, 0],
+            x: ["2026-W08", "2026-W11", "2026-W13", "2026-W14", "2026-W15"],
+            y: [0, 0, 0, 0, 0],
             name: 'Coverage',
             type: 'scatter',
             mode: 'lines+markers',
