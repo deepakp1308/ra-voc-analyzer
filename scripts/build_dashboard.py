@@ -690,6 +690,59 @@ def generate_dashboard(records: list[dict], trends: dict, snapshots: dict) -> st
         "negative": [trends["monthly"].get(m, {}).get("negative", 0) for m in all_months],
     }
 
+    # ── Last 8 Weeks: Good / Bad / Ugly Breakdown ──────────────────────────
+    # Good = positive sentiment
+    # Bad = negative sentiment, NOT data_quality + NOT bug_or_error
+    # Ugly = negative sentiment AND (data_quality OR bug_or_error)
+    last_8_weeks = all_weeks[-8:] if len(all_weeks) >= 8 else all_weeks
+    gbu_data = {"weeks": last_8_weeks, "good": [], "bad": [], "ugly": [], "neutral": []}
+    gbu_totals = {"good": 0, "bad": 0, "ugly": 0, "neutral": 0}
+    gbu_examples = {"good": [], "bad": [], "ugly": []}
+
+    for w in last_8_weeks:
+        week_recs = [r for r in records if r["iso_week"] == w]
+        good = sum(1 for r in week_recs if r["sentiment"] == "positive")
+        ugly = sum(
+            1 for r in week_recs
+            if r["sentiment"] == "negative" and r["category"] in ("data_quality", "bug_or_error")
+        )
+        bad = sum(
+            1 for r in week_recs
+            if r["sentiment"] == "negative" and r["category"] not in ("data_quality", "bug_or_error")
+        )
+        neutral = sum(1 for r in week_recs if r["sentiment"] == "neutral")
+        gbu_data["good"].append(good)
+        gbu_data["bad"].append(bad)
+        gbu_data["ugly"].append(ugly)
+        gbu_data["neutral"].append(neutral)
+        gbu_totals["good"] += good
+        gbu_totals["bad"] += bad
+        gbu_totals["ugly"] += ugly
+        gbu_totals["neutral"] += neutral
+
+    # Sample VOCs for each bucket (most recent 3 from last 8 weeks)
+    last_8_weeks_set = set(last_8_weeks)
+    last_8_recs = [r for r in records if r["iso_week"] in last_8_weeks_set]
+    gbu_examples["good"] = sorted(
+        [r for r in last_8_recs if r["sentiment"] == "positive"],
+        key=lambda r: r["timestamp"], reverse=True,
+    )[:3]
+    gbu_examples["bad"] = sorted(
+        [r for r in last_8_recs
+         if r["sentiment"] == "negative" and r["category"] not in ("data_quality", "bug_or_error")],
+        key=lambda r: r["timestamp"], reverse=True,
+    )[:3]
+    gbu_examples["ugly"] = sorted(
+        [r for r in last_8_recs
+         if r["sentiment"] == "negative" and r["category"] in ("data_quality", "bug_or_error")],
+        key=lambda r: r["timestamp"], reverse=True,
+    )[:3]
+
+    gbu_total_8w = sum(gbu_totals.values())
+    gbu_pct = {
+        k: (v / gbu_total_8w * 100 if gbu_total_8w else 0) for k, v in gbu_totals.items()
+    }
+
     # Change detection: pre vs post Aug 2025
     change_table = []
     for cat in categories:
@@ -778,6 +831,7 @@ def generate_dashboard(records: list[dict], trends: dict, snapshots: dict) -> st
         <h2><span class="star">&#10022;</span> R&A VOC Analyzer</h2>
         <nav>
             <a href="#tldr" class="active">TL;DR</a>
+            <a href="#last-8-weeks">Last 8 Weeks: Good / Bad / Ugly</a>
             <a href="#weekly-trend">Weekly Sentiment Trend</a>
             <a href="#segments">Segment Breakdown</a>
             <a href="#categories">Category Distribution</a>
@@ -834,6 +888,63 @@ def generate_dashboard(records: list[dict], trends: dict, snapshots: dict) -> st
                 <li><strong>HVC ($299+) segment:</strong> {seg_sentiment['paid_gte_299']['total']:,} VOCs with {seg_sentiment['paid_gte_299']['neg_pct']:.0f}% negative sentiment vs {seg_sentiment['paid_lt_299']['neg_pct']:.0f}% for paid &lt;$299</li>
                 <li><strong>Data quality verdict (90d):</strong> {', '.join(f'{k}: {v}' for k, v in dq_verdicts.items() if v != 'insufficient_data')}</li>
             </ul>
+        </div>
+
+        <!-- Section: Last 8 Weeks Good/Bad/Ugly -->
+        <div class="section-title" id="last-8-weeks">Last 8 Weeks: Good / Bad / Ugly</div>
+        <div class="card">
+            <h3><span class="icon">&#10022;</span> Good / Bad / Ugly — Last 8 Weeks ({last_8_weeks[0] if last_8_weeks else 'N/A'} → {last_8_weeks[-1] if last_8_weeks else 'N/A'})</h3>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px;">
+                <div style="background: #e6f9f0; border-left: 4px solid #1aab68; border-radius: 6px; padding: 16px;">
+                    <div style="font-size: 11px; color: #1aab68; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">&#9786; Good</div>
+                    <div style="font-size: 28px; font-weight: 600; color: #1a1f36; margin: 4px 0;">{gbu_totals["good"]:,}</div>
+                    <div style="font-size: 12px; color: #6b7c93;">{gbu_pct["good"]:.0f}% of last 8 weeks &middot; positive sentiment</div>
+                </div>
+                <div style="background: #fff4e5; border-left: 4px solid #f5a623; border-radius: 6px; padding: 16px;">
+                    <div style="font-size: 11px; color: #b8740d; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">&#9888; Bad</div>
+                    <div style="font-size: 28px; font-weight: 600; color: #1a1f36; margin: 4px 0;">{gbu_totals["bad"]:,}</div>
+                    <div style="font-size: 12px; color: #6b7c93;">{gbu_pct["bad"]:.0f}% of last 8 weeks &middot; negative (feature gap, UX, other)</div>
+                </div>
+                <div style="background: #fde8ea; border-left: 4px solid #d13438; border-radius: 6px; padding: 16px;">
+                    <div style="font-size: 11px; color: #d13438; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">&#9760; Ugly</div>
+                    <div style="font-size: 28px; font-weight: 600; color: #1a1f36; margin: 4px 0;">{gbu_totals["ugly"]:,}</div>
+                    <div style="font-size: 12px; color: #6b7c93;">{gbu_pct["ugly"]:.0f}% of last 8 weeks &middot; negative + data quality / bugs</div>
+                </div>
+            </div>
+            <div id="gbu-trend-chart" class="chart-container"></div>
+            <div style="margin-top: 12px; font-size: 11px; color: #6b7c93;">
+                <strong>Definitions:</strong>
+                <span style="color: #1aab68;">&#9786; Good</span> = positive sentiment &middot;
+                <span style="color: #b8740d;">&#9888; Bad</span> = negative sentiment in feature gap, performance/UX, or other &middot;
+                <span style="color: #d13438;">&#9760; Ugly</span> = negative sentiment in data quality or bug/error
+            </div>
+        </div>
+
+        <div class="card">
+            <h3><span class="icon">&#10022;</span> Sample VOCs from the Last 8 Weeks</h3>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+                <div>
+                    <div style="font-size: 12px; color: #1aab68; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">&#9786; Good</div>
+                    {"".join(f'''<div style="background: #f8fbf9; border-radius: 6px; padding: 10px; margin-bottom: 8px; font-size: 12px;">
+                        <div style="color: #6b7c93; font-size: 10px; margin-bottom: 4px;">{r.get("timestamp", "")[:10]} &middot; {r.get("channel", "")}</div>
+                        <div style="line-height: 1.4; color: #1a1f36;">{r.get("feedback_text", "")[:140]}{"..." if len(r.get("feedback_text", "")) > 140 else ""}</div>
+                    </div>''' for r in gbu_examples["good"]) if gbu_examples["good"] else '<div style="color: #6b7c93; font-size: 12px;">No examples in last 8 weeks.</div>'}
+                </div>
+                <div>
+                    <div style="font-size: 12px; color: #b8740d; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">&#9888; Bad</div>
+                    {"".join(f'''<div style="background: #fffbf3; border-radius: 6px; padding: 10px; margin-bottom: 8px; font-size: 12px;">
+                        <div style="color: #6b7c93; font-size: 10px; margin-bottom: 4px;">{r.get("timestamp", "")[:10]} &middot; {cat_labels.get(r.get("category", ""), "")}</div>
+                        <div style="line-height: 1.4; color: #1a1f36;">{r.get("feedback_text", "")[:140]}{"..." if len(r.get("feedback_text", "")) > 140 else ""}</div>
+                    </div>''' for r in gbu_examples["bad"]) if gbu_examples["bad"] else '<div style="color: #6b7c93; font-size: 12px;">No examples in last 8 weeks.</div>'}
+                </div>
+                <div>
+                    <div style="font-size: 12px; color: #d13438; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">&#9760; Ugly</div>
+                    {"".join(f'''<div style="background: #fdf5f6; border-radius: 6px; padding: 10px; margin-bottom: 8px; font-size: 12px;">
+                        <div style="color: #6b7c93; font-size: 10px; margin-bottom: 4px;">{r.get("timestamp", "")[:10]} &middot; {cat_labels.get(r.get("category", ""), "")}</div>
+                        <div style="line-height: 1.4; color: #1a1f36;">{r.get("feedback_text", "")[:140]}{"..." if len(r.get("feedback_text", "")) > 140 else ""}</div>
+                    </div>''' for r in gbu_examples["ugly"]) if gbu_examples["ugly"] else '<div style="color: #6b7c93; font-size: 12px;">No examples in last 8 weeks.</div>'}
+                </div>
+            </div>
         </div>
 
         <!-- Section 2: Weekly Sentiment Trend -->
@@ -941,6 +1052,47 @@ def generate_dashboard(records: list[dict], trends: dict, snapshots: dict) -> st
     </div>
 
     <script>
+    // ── Last 8 Weeks Good / Bad / Ugly ──────────────────────────────────
+    Plotly.newPlot('gbu-trend-chart', [
+        {{
+            x: {json.dumps(gbu_data["weeks"])},
+            y: {json.dumps(gbu_data["ugly"])},
+            name: 'Ugly (DQ + Bugs)',
+            type: 'bar',
+            marker: {{ color: '#d13438' }}
+        }},
+        {{
+            x: {json.dumps(gbu_data["weeks"])},
+            y: {json.dumps(gbu_data["bad"])},
+            name: 'Bad (Other Negatives)',
+            type: 'bar',
+            marker: {{ color: '#f5a623' }}
+        }},
+        {{
+            x: {json.dumps(gbu_data["weeks"])},
+            y: {json.dumps(gbu_data["neutral"])},
+            name: 'Neutral',
+            type: 'bar',
+            marker: {{ color: '#9aa9bd' }}
+        }},
+        {{
+            x: {json.dumps(gbu_data["weeks"])},
+            y: {json.dumps(gbu_data["good"])},
+            name: 'Good (Positive)',
+            type: 'bar',
+            marker: {{ color: '#1aab68' }}
+        }}
+    ], {{
+        barmode: 'stack',
+        margin: {{ l: 50, r: 20, t: 20, b: 60 }},
+        xaxis: {{ title: 'ISO Week' }},
+        yaxis: {{ title: 'VOC Count' }},
+        font: {{ family: "'Avenir Next', -apple-system, sans-serif" }},
+        legend: {{ orientation: 'h', y: 1.12 }},
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        paper_bgcolor: 'rgba(0,0,0,0)',
+    }}, {{ responsive: true }});
+
     // ── Weekly Sentiment Trend ──────────────────────────────────────────
     Plotly.newPlot('weekly-trend-chart', [
         {{

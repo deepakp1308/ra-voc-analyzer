@@ -65,6 +65,7 @@
         <h2><span class="star">&#10022;</span> R&A VOC Analyzer</h2>
         <nav>
             <a href="#tldr" class="active">TL;DR</a>
+            <a href="#last-8-weeks">Last 8 Weeks: Good / Bad / Ugly</a>
             <a href="#weekly-trend">Weekly Sentiment Trend</a>
             <a href="#segments">Segment Breakdown</a>
             <a href="#categories">Category Distribution</a>
@@ -74,7 +75,7 @@
             <a href="#qa">Agent QA</a>
         </nav>
         <div style="position: absolute; bottom: 16px; left: 16px; right: 16px; font-size: 11px; color: rgba(255,255,255,0.4);">
-            Generated: 2026-05-03 23:05 PT<br>
+            Generated: 2026-05-06 16:10 PT<br>
             Data: 2025-W09 to 2026-W15
         </div>
     </div>
@@ -83,7 +84,7 @@
         <div class="header">
             <h1>&#10022; R&A VOC Analyzer — Weekly Insights</h1>
             <div class="subtitle">Customer Voice-of-Customer Analysis for Reporting & Analytics</div>
-            <div class="generated">Data range: 2025-W09 to 2026-W15 | 710 total VOCs across 3 channels | Generated May 03, 2026</div>
+            <div class="generated">Data range: 2025-W09 to 2026-W15 | 710 total VOCs across 3 channels | Generated May 06, 2026</div>
         </div>
 
         <!-- KPI Row -->
@@ -121,6 +122,74 @@
                 <li><strong>HVC ($299+) segment:</strong> 430 VOCs with 35% negative sentiment vs 41% for paid &lt;$299</li>
                 <li><strong>Data quality verdict (90d):</strong> accuracy: steady, consistency: steady, availability: steady, freshness: steady, coverage: steady</li>
             </ul>
+        </div>
+
+        <!-- Section: Last 8 Weeks Good/Bad/Ugly -->
+        <div class="section-title" id="last-8-weeks">Last 8 Weeks: Good / Bad / Ugly</div>
+        <div class="card">
+            <h3><span class="icon">&#10022;</span> Good / Bad / Ugly — Last 8 Weeks (2026-W08 → 2026-W15)</h3>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px;">
+                <div style="background: #e6f9f0; border-left: 4px solid #1aab68; border-radius: 6px; padding: 16px;">
+                    <div style="font-size: 11px; color: #1aab68; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">&#9786; Good</div>
+                    <div style="font-size: 28px; font-weight: 600; color: #1a1f36; margin: 4px 0;">0</div>
+                    <div style="font-size: 12px; color: #6b7c93;">0% of last 8 weeks &middot; positive sentiment</div>
+                </div>
+                <div style="background: #fff4e5; border-left: 4px solid #f5a623; border-radius: 6px; padding: 16px;">
+                    <div style="font-size: 11px; color: #b8740d; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">&#9888; Bad</div>
+                    <div style="font-size: 28px; font-weight: 600; color: #1a1f36; margin: 4px 0;">3</div>
+                    <div style="font-size: 12px; color: #6b7c93;">10% of last 8 weeks &middot; negative (feature gap, UX, other)</div>
+                </div>
+                <div style="background: #fde8ea; border-left: 4px solid #d13438; border-radius: 6px; padding: 16px;">
+                    <div style="font-size: 11px; color: #d13438; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">&#9760; Ugly</div>
+                    <div style="font-size: 28px; font-weight: 600; color: #1a1f36; margin: 4px 0;">4</div>
+                    <div style="font-size: 12px; color: #6b7c93;">13% of last 8 weeks &middot; negative + data quality / bugs</div>
+                </div>
+            </div>
+            <div id="gbu-trend-chart" class="chart-container"></div>
+            <div style="margin-top: 12px; font-size: 11px; color: #6b7c93;">
+                <strong>Definitions:</strong>
+                <span style="color: #1aab68;">&#9786; Good</span> = positive sentiment &middot;
+                <span style="color: #b8740d;">&#9888; Bad</span> = negative sentiment in feature gap, performance/UX, or other &middot;
+                <span style="color: #d13438;">&#9760; Ugly</span> = negative sentiment in data quality or bug/error
+            </div>
+        </div>
+
+        <div class="card">
+            <h3><span class="icon">&#10022;</span> Sample VOCs from the Last 8 Weeks</h3>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+                <div>
+                    <div style="font-size: 12px; color: #1aab68; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">&#9786; Good</div>
+                    <div style="color: #6b7c93; font-size: 12px;">No examples in last 8 weeks.</div>
+                </div>
+                <div>
+                    <div style="font-size: 12px; color: #b8740d; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">&#9888; Bad</div>
+                    <div style="background: #fffbf3; border-radius: 6px; padding: 10px; margin-bottom: 8px; font-size: 12px;">
+                        <div style="color: #6b7c93; font-size: 10px; margin-bottom: 4px;">2026-03-31 &middot; Other / Praise</div>
+                        <div style="line-height: 1.4; color: #1a1f36;">Prevent accidental modification of the SMS "Opt-in Request" message. Customer wants this compliance-critical message locked or restricted so...</div>
+                    </div><div style="background: #fffbf3; border-radius: 6px; padding: 10px; margin-bottom: 8px; font-size: 12px;">
+                        <div style="color: #6b7c93; font-size: 10px; margin-bottom: 4px;">2026-03-16 &middot; Feature Gap</div>
+                        <div style="line-height: 1.4; color: #1a1f36;">Over on Beehive and Bigmailer we can create segments based on whether a User has Clicked X times in X Days. I cannot describe how useful it ...</div>
+                    </div><div style="background: #fffbf3; border-radius: 6px; padding: 10px; margin-bottom: 8px; font-size: 12px;">
+                        <div style="color: #6b7c93; font-size: 10px; margin-bottom: 4px;">2026-03-05 &middot; Other / Praise</div>
+                        <div style="line-height: 1.4; color: #1a1f36;">use the chatgpt x Mailchimp connector to review analytics within chatgpt | the connector doesn't expose Mailchimp data, so it can't read cam...</div>
+                    </div>
+                </div>
+                <div>
+                    <div style="font-size: 12px; color: #d13438; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">&#9760; Ugly</div>
+                    <div style="background: #fdf5f6; border-radius: 6px; padding: 10px; margin-bottom: 8px; font-size: 12px;">
+                        <div style="color: #6b7c93; font-size: 10px; margin-bottom: 4px;">2026-03-31 &middot; Data Quality</div>
+                        <div style="line-height: 1.4; color: #1a1f36;">Add validation that prevents saving an Opt-in Request message if the required "reply Y" confirmation prompt language is missing. If the mess...</div>
+                    </div><div style="background: #fdf5f6; border-radius: 6px; padding: 10px; margin-bottom: 8px; font-size: 12px;">
+                        <div style="color: #6b7c93; font-size: 10px; margin-bottom: 4px;">2026-03-26 &middot; Data Quality</div>
+                        <div style="line-height: 1.4; color: #1a1f36;">Number discrepancy between Custom Reports & Campaign View
+
+Goal: Have a single, reliable source of truth for campaign performance metrics, p...</div>
+                    </div><div style="background: #fdf5f6; border-radius: 6px; padding: 10px; margin-bottom: 8px; font-size: 12px;">
+                        <div style="color: #6b7c93; font-size: 10px; margin-bottom: 4px;">2026-03-06 &middot; Bug / Error</div>
+                        <div style="line-height: 1.4; color: #1a1f36;">Core Need: Implement an automated Global Frequency Cap to manage marketing pressure during high-volume periods (e.g., "Announcement Season")...</div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Section 2: Weekly Sentiment Trend -->
@@ -342,6 +411,47 @@ The...</div>
     </div>
 
     <script>
+    // ── Last 8 Weeks Good / Bad / Ugly ──────────────────────────────────
+    Plotly.newPlot('gbu-trend-chart', [
+        {
+            x: ["2026-W08", "2026-W09", "2026-W10", "2026-W11", "2026-W12", "2026-W13", "2026-W14", "2026-W15"],
+            y: [0, 0, 2, 0, 0, 1, 1, 0],
+            name: 'Ugly (DQ + Bugs)',
+            type: 'bar',
+            marker: { color: '#d13438' }
+        },
+        {
+            x: ["2026-W08", "2026-W09", "2026-W10", "2026-W11", "2026-W12", "2026-W13", "2026-W14", "2026-W15"],
+            y: [0, 0, 1, 0, 1, 0, 1, 0],
+            name: 'Bad (Other Negatives)',
+            type: 'bar',
+            marker: { color: '#f5a623' }
+        },
+        {
+            x: ["2026-W08", "2026-W09", "2026-W10", "2026-W11", "2026-W12", "2026-W13", "2026-W14", "2026-W15"],
+            y: [1, 2, 5, 4, 4, 4, 0, 4],
+            name: 'Neutral',
+            type: 'bar',
+            marker: { color: '#9aa9bd' }
+        },
+        {
+            x: ["2026-W08", "2026-W09", "2026-W10", "2026-W11", "2026-W12", "2026-W13", "2026-W14", "2026-W15"],
+            y: [0, 0, 0, 0, 0, 0, 0, 0],
+            name: 'Good (Positive)',
+            type: 'bar',
+            marker: { color: '#1aab68' }
+        }
+    ], {
+        barmode: 'stack',
+        margin: { l: 50, r: 20, t: 20, b: 60 },
+        xaxis: { title: 'ISO Week' },
+        yaxis: { title: 'VOC Count' },
+        font: { family: "'Avenir Next', -apple-system, sans-serif" },
+        legend: { orientation: 'h', y: 1.12 },
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        paper_bgcolor: 'rgba(0,0,0,0)',
+    }, { responsive: true });
+
     // ── Weekly Sentiment Trend ──────────────────────────────────────────
     Plotly.newPlot('weekly-trend-chart', [
         {
